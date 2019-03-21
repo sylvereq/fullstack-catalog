@@ -21,10 +21,11 @@ from passlib.apps import custom_app_context as pwd_context
 
 app = Flask(__name__, static_url_path='')
 
-CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
-APPLICATION_NAME = "Udacity Fullstack Project"
+#CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())['web']['client_id']
+CLIENT_ID = "273123"
+APPLICATION_NAME = "Item Catalog"
 
-engine = create_engine('sqlite:///items.db', connect_args={'check_same_thread': False}, echo=True)
+engine = create_engine('sqlite:///items.db', connect_args={'check_same_thread': False}, echo=False)
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -35,7 +36,6 @@ def nlogin():
     if request.method == 'POST':
         pw = request.form['password']
         email = request.form['email']
-        print("PW: "+pw +str(len(pw))+" Email: "+email)
 
         if len(pw) is 0 or len(email) is 0:
             return redirect('/')
@@ -120,7 +120,6 @@ def gconnect():
     print(answer)
 
     data = answer.json()
-    print(data)
     login_session['username'] = data['name']
     login_session['email'] = data['email']
 
@@ -203,9 +202,14 @@ def newCategory():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newItem = Category(name = request.form['categoryName'])
-        session.add(newItem)
-        session.commit()
+        categoryExists = session.query(Category).filter_by(name = request.form['categoryName']).first()
+        if categoryExists:
+            login_session['warning'] = "Category Name already exists"
+            return redirect(url_for('showStart'))
+        else:
+            newItem = Category(name = request.form['categoryName'])
+            session.add(newItem)
+            session.commit()
 
     return redirect(url_for('showStart'))
 
@@ -213,39 +217,65 @@ def newCategory():
 def newItem():
     if 'username' not in login_session:
         return redirect('/login')
-    if request.method == 'POST':
-        newItem = Item(title = request.form['itemTitle'], description = request.form['itemDesc'], imgSource = request.form['itemImg'] )
-        session.add(newItem)
-        session.commit()
 
-    return redirect(url_for('showStart'))
+    print(login_session['email'])
+    user = session.query(User).filter_by(email=login_session['email']).one()
+    category = session.query(Category).filter_by(name=request.form['categoryName']).one()
+    newItem = Item(user = user, category = category, title = request.form['itemTitle'], description = request.form['itemDesc'], imgSource = request.form['itemImg'] )
+    session.add(newItem)
+    session.commit()
 
+    return redirect(url_for('showStartWithCategory', categoryName=category.name))
+
+@app.route('/deleteItem', methods=['GET','POST'])
 def deleteItem():
     if 'username' not in login_session:
         return redirect('/login')
     if request.method == 'POST':
-        newItem = Category(name = request.form['itemName'])
-        session.add(newItem)
+        item = session.query(Item).filter_by(id=request.form['cardid']).one()
+        session.delete(item)
         session.commit()
 
-    return redirect(url_for('showStart'))
+    return redirect(url_for('showStartWithCategory', categoryName=request.form['categoryName']))
 
-@app.route('/')
+@app.route('/updateItem', methods=['GET','POST'])
+def updateItem():
+    if request.method == 'GET':
+        print(request.data)
+        
+    item = session.query(Item).filter_by(id=request.form['cardid']).one()
+    item.title = request.form['itemTitle']
+    item.description = request.form['itemDescription']
+    session.add(item)
+    session.commit()
+
+    return redirect(url_for("showStartWithCategory", categoryName=request.form['categoryName'] ))
+
+@app.route('/', methods=['GET','POST'])
 def showStart():
     if 'username' not in login_session:
         return redirect('/login')
+
+    warning = login_session.get('warning')
+
     categories = session.query(Category).all()
-    items = session.query(Item).all()
+    items = session.query(Item).join(Item.category)
+    for item in items:
+        print("Item:")
+        print(item.__dict__)
     creatorMail = login_session['email']
-    return render_template('start.html', categories=categories, items=items, creatorMail=creatorMail)
+    return render_template('start.html', warning=warning, categories=categories, items=items, creatorMail=creatorMail)
 
-@app.route('/<string:categoryName>')
+@app.route('/<categoryName>')
 def showStartWithCategory(categoryName):
-    
-    categoryItem = session.query(Category).filter_by(name=categoryName)
+    if 'username' not in login_session:
+        return redirect('/login')
+    print(categoryName)
+    categoryItem = session.query(Category).filter_by(name=categoryName).one()
     items = session.query(Item).filter_by(category=categoryItem).all()
-
-    return render_template('start.html', categories=categories, items=items, creatorMail=creatorMail)
+    categories = session.query(Category).all()
+    creatorMail = login_session['email']
+    return render_template('selectedCategory.html', categories=categories, categoryName=categoryName, items=items, creatorMail=creatorMail)
 
 
 ###### API #####
@@ -258,7 +288,6 @@ def get_auth_token():
 
 @auth.verify_password
 def verify_password(email_or_token, password):
-    print(email_or_token + " " + password)
     user_id = User.verify_auth_token(email_or_token)
     if user_id:
         user = session.query(User).filter_by(id = user_id).first()

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar navbar-light bg-light">
+            <a class="navbar-brand">Catalog App</a>
+            <form class="form-inline" action="/disconnect">
+                <a class="navbar-brand">{{creatorMail}}</a>
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Logout</button>
+            </form>
+        </nav>
+        <div class="row">
+            <div class="col-4">
+                <h3>Categories</h3>
+            </div>
+            <div class="col-8">
+                <h3>Items</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+              <div class="list-group" id="list-tab" role="tablist">
+                {% for i in categories %}
+                    <a class="list-group-item list-group-item-action" id="{{i.name}}" href="{{i.name}}" aria-controls="home">{{i.name}}</a>
+                {% endfor %}
+                <form action="{{ url_for('newCategory')}}" method = 'post'>
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" name="categoryName" aria-label="" aria-describedby="basic-addon2">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="submit">Add</button>
+                        </div>
+                    </div>
+                </form>
+                <h4 id="warningLabel">{{warning}}</h4>
+              </div>
+            </div>
+            <div class="col-8">
+                <div class="tab-content" id="nav-tabContent">
+                        <div class="tab-pane fade show active" id="" role="tabpanel" aria-labelledby="">
+                            {% for i in items %}
+   
+                                    <div class="card">
+                                        <img class="card-img-top" src="{{i.imgSource}}" alt="Card image cap">
+                                        <div class="card-body">
+                                            <h5 id="cardTitle" class="card-title">{{i.title}}</h5>
+                                            <p id="cardDescription" class="card-text">{{i.description}}</p>
+                                            <form id="itemUpdateForm" method="post">
+                                                <input id="cardTitleForm" type="text" class="form-control" name="itemTitle" value="{{i.title}}">
+                                                <input id="cardDescriptionForm" type="text" class="form-control" name="itemDescription" value="{{i.description}}">
+                                                <input type="hidden" id="cardid" name="cardid" value="{{i.id}}">
+                                                <input type="hidden" name="categoryName" value="{{categoryName}}">
+                                            </form>
+                                            <button id="deleteButton" class="btn btn-primary bg-danger">Delete</button>
+                                            <button id="editButton" class="btn btn-primary">Edit</button>
+                                            <button type="submit" href="#" id="safeButton" class="btn btn-primary">Safe</button>
+
+                                        </div>
+                                    </div>
+                              
+                            {% endfor %}
+                        </div>
+                </div>
+                <div class="list-group" id="list-tab" role="tablist">
+                    <div class="card border-success mt-3">
+                        <div class="card-header">Add a item to the selected Category:</div>
+                        <div class="card-body">
+                            <form action="{{ url_for('newItem')}}" method = 'post'>
+                                <div class="form-group mb-3">
+                                    <label for="itemTitle">Header</label>
+                                    <input type="text" class="form-control" name="itemTitle" aria-label="" aria-describedby="basic-addon2">
+                                    <label for="itemDesc">Description</label>
+                                    <input type="text" class="form-control" name="itemDesc" aria-label="" aria-describedby="basic-addon2">
+                                    <label for="itemImg">Image URL</label>
+                                    <input type="text" class="form-control" name="itemImg" aria-label="" aria-describedby="basic-addon2">
+                                    <input type="hidden" name="categoryName" value="{{categoryName}}">
+
+                                    <button class="btn btn btn-primary" type="submit">Add</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+              </div>
+            </div>
+          </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+    <script>
+    $(function () {
+        var title = $(this).siblings('#cardTitle')
+        var description = $(this).siblings('#cardDescription')
+        var titleForm = $(this).siblings('#cardTitleForm')
+        var descriptionForm = $(this).siblings('#cardDescriptionForm')
+
+        $("#grouplist a").first().toggleClass("active")
+
+        $(document).on("click","#grouplist a", (element) => {
+            $("#grouplist a").removeClass("active")
+            $(element.currentTarget).toggleClass("active")
+            window.location = element.currentTarget.text()
+        })
+
+        $('#list-tab #{{categoryName}}').toggleClass("active")
+
+        if($('#warningLabel').text == "None") {
+            $('#warningLabel').hide()
+        }
+
+
+        $('#cardTitleForm').each(function () {
+            $(this).hide();
+        })
+
+        $('#cardDescriptionForm').each(function () {
+            $(this).hide();
+        })
+
+        $('#deleteButton').on('click', function () {
+            var form = $(this).parent().children("form");
+            form.attr('action', 'deleteItem');
+            form.submit();
+        });
+
+        $('#safeButton').hide();
+        $('#safeButton').on('click', function (e) {
+            $('#itemUpdateForm').attr('action', 'updateItem');
+
+            $(this).parent().children("form").children("#cardTitleForm").hide()
+            $(this).parent().children("form").children("#cardDescriptionForm").hide()
+
+            $(this).parent().children("#cardDescription").show()
+            $(this).parent().children("#cardTitle").show()
+            $('#itemUpdateForm').submit()
+        });
+
+        $('#editButton').on('click', function (e) {
+            $('#editButton').hide();
+            $('#safeButton').show();
+
+            $(this).parent().children("form").children("#cardTitleForm").show()
+            $(this).parent().children("form").children("#cardDescriptionForm").show()
+
+            $(this).parent().children("#cardDescription").hide()
+            $(this).parent().children("#cardTitle").hide()
+        })
+    });
+    </script>
+</body>
+
+</html>
