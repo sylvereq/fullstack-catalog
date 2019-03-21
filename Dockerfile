@@ -3,7 +3,6 @@ ADD application.py /
 ADD database_setup.py /
 ADD populate_items.py /
 ADD css css/
-ADD static static/
 ADD templates templates/
 RUN pip install flask
 RUN pip install requests
