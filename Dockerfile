@@ -1,4 +1,4 @@
-FROM python:2.7
+FROM python:2.7.12
 ADD application.py /
 ADD database_setup.py /
 ADD populate_items.py /
@@ -13,5 +13,5 @@ RUN pip install sqlalchemy
 RUN pip install oauth2client
 RUN python database_setup.py
 RUN python populate_items.py
-CMD [ "python", "./application.py" ]
 EXPOSE 5000
+CMD [ "python", "./application.py" ]
