@@ -10,3 +10,6 @@ PW: test
 
 **Startup**
 Run application.py with python: "python application.py"
+
+**Docker run**
+sudo docker run -it -p 5000:5000 py-catalog
