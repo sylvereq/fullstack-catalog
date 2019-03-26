@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Page Title</title>
+    <link rel="icon" href="data:,">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js">
@@ -31,19 +32,25 @@
                 </form>
                 <hr>
                 <h3>Alternative Login</h3> 
-                <div id="signinButton">
-                    <span class="g-signin" data-scope="openid email" data-clientid="970023041220-cftl7t72nvd7bikt6h4uog03nuf1o986.apps.googleusercontent.com"
-                        data-redirecturi="postmessage" data-accesstype="offline" data-cookiepolicy="single_host_origin"
-                        data-callback="signInCallback" data-approvalprompt="force">
-                    </span>
-                </div>
+                <a href="https://github.com/login/oauth/authorize?scope=user:email&client_id=9723ca785788e8443143&state={{STATE}}">github</a>
             </div>
         </div>
     </div>
     <div id="result"></div>
     <script>
 
-
+        $(function () {
+            $("#github").on("click",function () {
+                $.ajax({
+                    type: 'GET',
+                    crossDomain: true,
+                    url: 'https://github.com/login/oauth/authorize?scope=user:email&client_id=9723ca785788e8443143&state={{STATE}}',
+                    headers: {
+                        "Access-Control-Allow-Origin":"*"
+                    }
+                }); 
+            })
+        })
         function signInCallback(authResult) {
 
             if (authResult['code']) {
@@ -52,8 +59,9 @@
                 // Send the one-time-use code to the server, if the server responds, write a 'login successful' message to the web page and then redirect back to the main restaurants page
                 $.ajax({
                     type: 'POST',
-                    url: '/gconnect?state={{STATE}}',
+                    url: 'https://github.com/login/oauth/authorize?scope=user:email&client_id=9723ca785788e8443143&state={{STATE}}',
                     processData: false,
+                    crossDomain: true,
                     data: authResult['code'],
                     contentType: 'application/octet-stream; charset=utf-8',
                     success: function (result) {
@@ -75,7 +83,7 @@
             }
         }
     </script>
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.js" ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 

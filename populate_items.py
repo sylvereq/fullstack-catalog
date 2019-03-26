@@ -24,7 +24,8 @@ category2 = Category(name="Sports", user=defaultuser)
 session.add(category2)
 session.commit()
 
-item1 = Item(title="Football", description="nice game", imgSource="https://upload.wikimedia.org/wikipedia/commons/thumb/9/92/Youth-soccer-indiana.jpg/1200px-Youth-soccer-indiana.jpg", category=category2, user=defaultuser)
+item1 = Item(title="Football", description="nice game",
+             imgSource="http://placekitten.com/g/200/300", category=category2,
+             user=defaultuser)
 session.add(item1)
 session.commit()
-
